@@ -2,6 +2,8 @@ import ssl
 import socket
 import os
 
+print("👀 SECC server script starting...")
+
 def run_secc_server():
     host = "localhost"
     port = 8443
