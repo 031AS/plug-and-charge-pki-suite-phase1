@@ -10,15 +10,21 @@ def load_cert_panel(parent):
     entry = ttk.Entry(parent, width=60)
     entry.pack(pady=5)
 
+    # Status message label
+    status_label = ttk.Label(parent, text="", foreground="blue")
+    status_label.pack(pady=10)
+
     def revoke():
         serial = entry.get()
-        print(f"🔴 Revoke clicked: {serial}")
-        revoke_cert(serial)
+        if serial:
+            revoke_cert(serial)
+            status_label.config(text=f"🔴 Certificate {serial} revoked")
 
     def unrevoke():
         serial = entry.get()
-        print(f"🟢 Unrevoke clicked: {serial}")
-        unrevoke_cert(serial)
+        if serial:
+            unrevoke_cert(serial)
+            status_label.config(text=f"🟢 Certificate {serial} set to GOOD")
 
     ttk.Button(parent, text="Revoke", command=revoke).pack(pady=10)
     ttk.Button(parent, text="Unrevoke", command=unrevoke).pack()
