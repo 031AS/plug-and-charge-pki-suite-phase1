@@ -1,11 +1,20 @@
 # tls/handshake_runner.py
+
 import ssl
 import socket
 
 def run_tls_handshake_gui():
     context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    context.load_cert_chain(certfile="certificates/evcc1.pem", keyfile="certificates/evcc1.key")
-    context.load_verify_locations(cafile="certificates/root_ca.pem")
+
+    # 🔐 Load EVCC's own cert and key
+    context.load_cert_chain(
+        certfile="certificates/evcc1.pem",
+        keyfile="certificates/evcc1.key"
+    )
+
+    # ✅ Trust SECC chain: subca_secc + root
+    context.load_verify_locations(cafile="certificates/chain_secc.pem")
+
     context.check_hostname = False
     context.verify_mode = ssl.CERT_REQUIRED
 
@@ -17,3 +26,4 @@ def run_tls_handshake_gui():
                 print("📜 Server Cert:", tls.getpeercert())
     except Exception as e:
         print(f"❌ TLS handshake failed: {e}")
+
