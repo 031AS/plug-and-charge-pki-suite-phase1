@@ -7,15 +7,17 @@ def run_secc_server():
     try:
         context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 
-        # 🔐 Load SECC certificate and key
-        context.load_cert_chain(certfile="certificates/secc1.pem",
-                                keyfile="certificates/secc1.key")
+        # 🔐 Load SECC server certificate and key
+        context.load_cert_chain(
+            certfile="certificates/secc1.pem",
+            keyfile="certificates/secc1.key"
+        )
 
-        # 🛡️ Load trusted root (for client cert verification, optional in Phase 1)
-        context.load_verify_locations(cafile="certificates/root_ca.pem")
+        # ✅ Trust the full EVCC chain: subca_ev.pem + root_ca.pem
+        context.load_verify_locations(cafile="certificates/chain_evcc.pem")
 
-        # ⚠️ Set to CERT_NONE for testing; use CERT_REQUIRED for production
-        context.verify_mode = ssl.CERT_NONE
+        # 🛡️ For testing: allow handshake even without client cert
+        context.verify_mode = ssl.CERT_OPTIONAL
 
         bind_addr = ("localhost", 8443)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
@@ -37,6 +39,5 @@ def run_secc_server():
     except Exception as e:
         print(f"❌ SECC Server failed to start: {e}")
 
-# ✅ Entry point
 if __name__ == "__main__":
     run_secc_server()
