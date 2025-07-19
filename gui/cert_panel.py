@@ -1,31 +1,60 @@
 # gui/cert_panel.py
+
 import tkinter as tk
+from tkinter import messagebox
+import json
+import os
+
 from tls.handshake_runner import run_tls_handshake_gui
-from tkinter import ttk
-from cli.revoke import revoke_cert, unrevoke_cert
 
-def load_cert_panel(parent):
-    label = ttk.Label(parent, text="Enter Certificate Serial (hex):")
-    label.pack(pady=10)
+DB_PATH = "cert_db.json"
 
-    entry = ttk.Entry(parent, width=60)
-    entry.pack(pady=5)
+def load_cert_panel(frame):
+    print("✅ load_cert_panel() called")
 
-    # Status message label
-    status_label = ttk.Label(parent, text="", foreground="blue")
-    status_label.pack(pady=10)
+    label = tk.Label(frame, text="Enter Certificate Serial (hex):", font=("Arial", 10))
+    label.pack(pady=5)
 
-    def revoke():
-        serial = entry.get()
+    serial_entry = tk.Entry(frame, width=50)
+    serial_entry.pack(pady=5)
+
+    def save_status(serial, status):
+        if not os.path.exists(DB_PATH):
+            db = {}
+        else:
+            with open(DB_PATH, "r") as f:
+                db = json.load(f)
+
+        db[serial] = status
+
+        with open(DB_PATH, "w") as f:
+            json.dump(db, f, indent=4)
+
+    def revoke_cert():
+        serial = serial_entry.get().strip().lower()
         if serial:
-            revoke_cert(serial)
-            status_label.config(text=f"🔴 Certificate {serial} revoked")
+            print(f"🔴 Revoke clicked: {serial}")
+            save_status(serial, "revoked")
+            print(f"🔴 Certificate {serial} marked as REVOKED.")
+        else:
+            messagebox.showwarning("Input Error", "Please enter a serial number.")
 
-    def unrevoke():
-        serial = entry.get()
+    def unrevoke_cert():
+        serial = serial_entry.get().strip().lower()
         if serial:
-            unrevoke_cert(serial)
-            status_label.config(text=f"🟢 Certificate {serial} set to GOOD")
+            print(f"🟢 Unrevoke clicked: {serial}")
+            save_status(serial, "good")
+            print(f"🟢 Certificate {serial} restored to GOOD.")
+        else:
+            messagebox.showwarning("Input Error", "Please enter a serial number.")
 
-    ttk.Button(parent, text="Revoke", command=revoke).pack(pady=10)
-    ttk.Button(parent, text="Unrevoke", command=unrevoke).pack()
+    revoke_button = tk.Button(frame, text="Revoke", command=revoke_cert)
+    revoke_button.pack(pady=2)
+
+    unrevoke_button = tk.Button(frame, text="Unrevoke", command=unrevoke_cert)
+    unrevoke_button.pack(pady=2)
+
+    # TLS Handshake button
+    tls_button = tk.Button(frame, text="Run Handshake", command=run_tls_handshake_gui)
+    tls_button.pack(pady=10)
+
