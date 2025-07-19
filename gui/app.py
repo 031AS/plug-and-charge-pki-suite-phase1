@@ -1,40 +1,52 @@
-# gui/app.py
 import tkinter as tk
-from tkinter import ttk
-from gui.trust_visualizer import draw_trust_chain
 from gui.cert_panel import load_cert_panel
-from tls.handshake_simulator import simulate_tls_handshake
+from gui.trust_visualizer import update_trust_graph
+from tls.evcc_client import run_evcc_tls
+from cli.revoke import run_revoke_cli
 
 def run_gui():
     root = tk.Tk()
-    root.title("031AS Plug & Charge PKI Suite")
-    root.geometry("900x600")
+    root.title("031AS Plug & Charge Suite")
+    root.geometry("800x600")
 
+    # ========== Notebook Tabs ==========
+    from tkinter import ttk
     notebook = ttk.Notebook(root)
-    notebook.pack(expand=True, fill='both')
+    notebook.pack(fill='both', expand=True)
 
-    frame1 = ttk.Frame(notebook)
-    frame2 = ttk.Frame(notebook)
-    frame3 = ttk.Frame(notebook)
+    # Frames for tabs
+    frame1 = tk.Frame(notebook)
+    frame2 = tk.Frame(notebook)
+    frame3 = tk.Frame(notebook)
+    frame4 = tk.Frame(notebook)
 
     notebook.add(frame1, text="Trust Chain")
-    notebook.add(frame2, text="Certificate Manager")
+    notebook.add(frame2, text="Cert Management")
     notebook.add(frame3, text="TLS Simulation")
+    notebook.add(frame4, text="Revocation")
 
-    for f in (frame1, frame2, frame3):
-        f.pack(fill="both", expand=True)
+    # ========== Frame 1: Trust Chain ==========
+    tk.Button(frame1, text="Update Trust Graph", command=update_trust_graph).pack(pady=20)
 
-    draw_trust_chain(frame1)
-    load_cert_panel(frame2)
+    # ========== Frame 2: Certificate Panel ==========
+    log_output = tk.Text(frame2, height=20, width=90)
+    log_output.pack(pady=10)
 
-    ttk.Button(
-        frame3,
-        text="Run Handshake",
-        command=lambda: simulate_tls_handshake(
-            "certificates/secc1.pem",
-            "certificates/secc1.key",
-            "certificates/root_ca.pem"
-        )
-    ).pack(pady=40)
+    def log(msg):
+        log_output.insert(tk.END, msg + "\n")
+        log_output.see(tk.END)
+
+    cert_panel = load_cert_panel(frame2, log)
+    cert_panel.pack()
+
+    # ========== Frame 3: TLS Simulation ==========
+    def run_handshake():
+        result = run_evcc_tls()
+        log(f"{result}")
+
+    tk.Button(frame3, text="Run TLS Handshake", command=run_handshake, bg="#ccffcc").pack(pady=40)
+
+    # ========== Frame 4: CLI Revoke ==========
+    tk.Button(frame4, text="Open Revoke CLI", command=run_revoke_cli).pack(pady=40)
 
     root.mainloop()
