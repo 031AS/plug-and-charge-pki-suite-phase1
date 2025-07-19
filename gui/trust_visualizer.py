@@ -1,28 +1,30 @@
-import tkinter as tk
-import networkx as nx
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import os
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.x509.oid import NameOID
 
-def draw_trust_chain(frame):
-    G = nx.DiGraph()
-    G.add_node("Root CA")
-    G.add_node("Sub-CA EV")
-    G.add_node("Sub-CA EVSE")
-    G.add_node("EVCC Cert")
-    G.add_node("SECC Cert")
+def parse_cert(path):
+    with open(path, "rb") as f:
+        cert_data = f.read()
+        return x509.load_pem_x509_certificate(cert_data, default_backend())
 
-    G.add_edges_from([
-        ("Root CA", "Sub-CA EV"),
-        ("Root CA", "Sub-CA EVSE"),
-        ("Sub-CA EV", "EVCC Cert"),
-        ("Sub-CA EVSE", "SECC Cert"),
-    ])
+def update_trust_graph():
+    print("🔍 Trust Chain Structure:\n")
 
-    pos = nx.spring_layout(G)
-    fig, ax = plt.subplots(figsize=(6, 4))
-    nx.draw(G, pos, with_labels=True, arrows=True, node_size=3000,
-            node_color='lightblue', font_size=9, ax=ax)
+    cert_paths = [
+        "certificates/root_ca.pem",
+        "certificates/subca_ev.pem",
+        "certificates/evcc1.pem",
+        "certificates/subca_secc.pem",
+        "certificates/secc1.pem"
+    ]
 
-    canvas = FigureCanvasTkAgg(fig, master=frame)
-    canvas.draw()
-    canvas.get_tk_widget().pack(fill='both', expand=True)
+    for path in cert_paths:
+        if os.path.exists(path):
+            cert = parse_cert(path)
+            subject = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+            issuer = cert.issuer.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+            print(f"🔗 {subject}\n   ⬑ issued by: {issuer}\n")
+        else:
+            print(f"⚠️  Missing certificate file: {path}")
+
