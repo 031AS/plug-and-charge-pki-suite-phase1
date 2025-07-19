@@ -22,7 +22,31 @@ def load_cert_panel(parent, log_callback):
         except Exception as e:
             log_callback(f"❌ Error generating CSR: {e}")
 
-    gen_csr_btn = tk.Button(panel, text="Generate CSR", command=on_generate_csr, bg="#e0e0ff")
-    gen_csr_btn.grid(row=1, column=0, columnspan=2, pady=10)
+    csr_btn = tk.Button(panel, text="Generate CSR", command=on_generate_csr, bg="#e0e0ff")
+    csr_btn.grid(row=1, column=0, columnspan=2, pady=5)
+
+    # ========== Section: Generate SECC Chain ==========
+    def generate_secc_chain():
+        subca_path = "certificates/subca_secc.pem"
+        root_path = "certificates/root_ca.pem"
+        chain_path = "certificates/chain_secc.pem"
+
+        if not os.path.exists(subca_path) or not os.path.exists(root_path):
+            log_callback("❌ Missing SECC Sub-CA or Root CA files.")
+            return
+
+        try:
+            with open(chain_path, "wb") as out:
+                for p in [subca_path, root_path]:
+                    with open(p, "rb") as f:
+                        out.write(f.read())
+
+            log_callback(f"✅ SECC chain written to: {chain_path}")
+        except Exception as e:
+            log_callback(f"❌ Failed to generate SECC chain: {e}")
+
+    secc_btn = tk.Button(panel, text="Generate SECC Chain", command=generate_secc_chain, bg="#ffeecc")
+    secc_btn.grid(row=2, column=0, columnspan=2, pady=5)
 
     return panel
+
