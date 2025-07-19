@@ -2,6 +2,8 @@
 import ssl
 import socket
 
+ print("🚗 EV attempting to connect to SECC (localhost:8443)...")
+
 context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
 context.load_cert_chain(certfile="certificates/evcc1.pem", keyfile="certificates/evcc1.key")
 context.load_verify_locations(cafile="certificates/root_ca.pem")
