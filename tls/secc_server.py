@@ -26,6 +26,7 @@ def run_secc_server():
         context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
         context.load_cert_chain(certfile=server_cert, keyfile=server_key)
         context.load_verify_locations(cafile=ca_chain)
+        context.verify_mode = ssl.CERT_REQUIRED  # ✅ Require EVCC cert
 
         bindsocket = socket.socket()
         bindsocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -54,24 +55,3 @@ def run_secc_server():
 
 if __name__ == "__main__":
     run_secc_server()
-
-    print(f"🔌 SECC waiting for EV handshake on port {port}...")
-
-    try:
-        while True:
-            conn, addr = bindsocket.accept()
-            print(f"📥 Connection from {addr}")
-
-            try:
-                with context.wrap_socket(conn, server_side=True) as tls:
-                    print(f"✅ TLS handshake successful.")
-                    print(f"🔐 Cipher: {tls.cipher()}")
-                    cert = tls.getpeercert()
-                    print(f"📜 Client Cert: {cert}")
-            except ssl.SSLError as e:
-                print(f"❌ TLS handshake failed: {e}")
-            finally:
-                conn.close()
-
-    except KeyboardInterrupt:
-        print("🛑 SECC server stopped.")
