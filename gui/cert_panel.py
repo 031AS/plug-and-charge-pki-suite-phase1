@@ -1,5 +1,6 @@
 # gui/cert_panel.py
 import tkinter as tk
+from tls.handshake_runner import run_tls_handshake_gui
 from tkinter import ttk
 from cli.revoke import revoke_cert, unrevoke_cert
 
