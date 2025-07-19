@@ -35,3 +35,5 @@ def run_evcc_tls():
         print(f"❌ TLS handshake failed: {e}")
     except Exception as e:
         print(f"❌ Connection failed: {e}")
+
+__all__ = ['run_evcc_tls']
