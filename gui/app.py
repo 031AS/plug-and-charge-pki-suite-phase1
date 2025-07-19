@@ -28,7 +28,7 @@ def run_gui():
     notebook.add(frame3, text="TLS Simulation")
 
     # Load tab contents
-    # draw_trust_chain(frame1)
+    draw_trust_chain(frame1)
     load_cert_panel(frame2)
 
     btn = ttk.Button(frame3, text="Run Handshake", command=lambda: simulate_tls_handshake(
